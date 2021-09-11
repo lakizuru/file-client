@@ -11,10 +11,16 @@ void send_file(FILE *fp, int sockfd, int fileSize)
 
   while(!feof(fp)){
     fread(data, 1, sizeof(data), fp);
-    if(write(sockfd, data, sizeof(data)) == -1) {
+    if(n = write(sockfd, data, sizeof(data)) == -1) {
       perror("[-]Error in sending file.");
       exit(1);
     }
+/*
+    else if (n != sizeof(data) && !feof(fp)){
+      // retrying until whole dataset is sent
+      while(n = write(sockfd, data, sizeof(data)) != sizeof(data)){}
+    }
+*/  
     bzero(data, sizeof(data));
   }
 
