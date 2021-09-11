@@ -67,13 +67,13 @@ int main(int argc, char **argv)
       exit(1);
     }
 
-  /* Sending file Name
-  if (send(sockfd, &fileName, sizeof(fileName), 0) == -1)
+  // Sending file Name
+  if (send(sockfd, fileName, sizeof(argv[1]), 0) == -1)
     {
       perror("[-]Error in sending file Name.");
       exit(1);
-    }
-*/
+  }
+
 
   send_file(fp, sockfd, fileSize);
   printf("[+]File data sent successfully.\n");
