@@ -7,14 +7,12 @@
 void send_file(FILE *fp, int sockfd, int fileSize)
 {
   int n;
-  char data[fileSize];
+  char data[4096];
 
   while(!feof(fp)){
     fread(data, 1, sizeof(data), fp);
-    if(n = write(sockfd, data, sizeof(data)) == -1) {
-      perror("[-]Error in sending file.");
-      exit(1);
-    }
+    write(sockfd, data, sizeof(data));
+
 /*
     else if (n != sizeof(data) && !feof(fp)){
       // retrying until whole dataset is sent
