@@ -11,28 +11,9 @@ void send_file(FILE *fp, int sockfd, int fileSize)
 
   while(!feof(fp)){
     fread(data, 1, sizeof(data), fp);
-    write(sockfd, data, sizeof(data));
-
-/*
-    else if (n != sizeof(data) && !feof(fp)){
-      // retrying until whole dataset is sent
-      while(n = write(sockfd, data, sizeof(data)) != sizeof(data)){}
-    }
-*/  
+    write(sockfd, data, sizeof(data)); 
     bzero(data, sizeof(data));
   }
-
-/*
-  while (fgets(data, SIZE, fp) != NULL)
-  {
-    if (send(sockfd, data, sizeof(data), 0) == -1)
-    {
-      perror("[-]Error in sending file.");
-      exit(1);
-    }
-    bzero(data, SIZE);
-  }
-  */
 }
 
 int main(int argc, char **argv)
