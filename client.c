@@ -3,12 +3,11 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
-#define SIZE 1024
 
 void send_file(FILE *fp, int sockfd, int fileSize)
 {
   int n;
-  char data[fileSize] = {0};
+  char data[fileSize];
 
   while(!feof(fp)){
     fread(data, 1, sizeof(data), fp);
@@ -32,7 +31,7 @@ void send_file(FILE *fp, int sockfd, int fileSize)
   */
 }
 
-int main()
+int main(int argc, char **argv)
 {
   char *ip = "127.0.0.1";
   int port = 6666;
@@ -41,7 +40,7 @@ int main()
   int sockfd;
   struct sockaddr_in server_addr;
   FILE *fp;
-  char *filename = "send.txt";
+  char *fileName = argv[1];
   int fileSize;
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -64,7 +63,7 @@ int main()
   }
   printf("[+]Connected to Server.\n");
 
-  fp = fopen(filename, "r");
+  fp = fopen(fileName, "r");
   if (fp == NULL)
   {
     perror("[-]Error in reading file.");
@@ -82,6 +81,14 @@ int main()
       perror("[-]Error in sending file size.");
       exit(1);
     }
+
+  /* Sending file Name
+  if (send(sockfd, &fileName, sizeof(fileName), 0) == -1)
+    {
+      perror("[-]Error in sending file Name.");
+      exit(1);
+    }
+*/
 
   send_file(fp, sockfd, fileSize);
   printf("[+]File data sent successfully.\n");
