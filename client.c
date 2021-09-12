@@ -26,7 +26,7 @@ int main(int argc, char **argv)
   struct sockaddr_in server_addr;
   FILE *fp;
   char *fileName = argv[1];
-  int fileSize, fileNameSize;
+  int fileSize, fileNameSize, maxFileSize;
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0)
@@ -48,6 +48,9 @@ int main(int argc, char **argv)
   }
   printf("[+]Connected to Server.\n");
 
+  // Reading maximum file size
+  read(sockfd, &maxFileSize, sizeof(maxFileSize));
+
   fp = fopen(fileName, "r");
   if (fp == NULL)
   {
@@ -59,6 +62,15 @@ int main(int argc, char **argv)
   fseek(fp, 0, SEEK_END);
   fileSize = ftell(fp);
   fseek(fp, 0, SEEK_SET);
+
+  if (fileSize > maxFileSize){
+    printf("[-]Maximum file size of %d exceeded.\n", maxFileSize);
+    fileSize = -1;
+    send(sockfd, &fileSize, sizeof(fileSize), 0);
+    printf("[-]Closing the connection.\n");
+    close(sockfd);
+    exit(1);
+  }
 
   // Getting fileNameSize
   fileNameSize = strlen(argv[1]);
@@ -84,18 +96,6 @@ int main(int argc, char **argv)
       perror("[-]Error in sending file Name.");
       exit(1);
   }
-
-/*
-  int n;
-  while(fileNameSize > 0) {
-    if (n = send(sockfd, fileName, sizeof(argv[1]), 0) == -1)
-    {  
-      perror("[-]Error in sending file Name.");
-      exit(1);
-    }
-    fileNameSize -= n;
-  }
-*/
 
   send_file(fp, sockfd, fileSize);
   printf("[+]File data sent successfully.\n");
