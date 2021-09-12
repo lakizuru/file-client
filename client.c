@@ -26,7 +26,7 @@ int main(int argc, char **argv)
   struct sockaddr_in server_addr;
   FILE *fp;
   char *fileName = argv[1];
-  int fileSize;
+  int fileSize, fileNameSize;
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0)
@@ -60,6 +60,10 @@ int main(int argc, char **argv)
   fileSize = ftell(fp);
   fseek(fp, 0, SEEK_SET);
 
+  // Getting fileNameSize
+  fileNameSize = strlen(argv[1]);
+  printf("%d\n", fileNameSize);
+
   // Sending file Size
   if (send(sockfd, &fileSize, sizeof(fileSize), 0) == -1)
     {
@@ -67,13 +71,31 @@ int main(int argc, char **argv)
       exit(1);
     }
 
+  // Sending fileNameSize
+  if (send(sockfd, &fileNameSize, sizeof(fileNameSize), 0) == -1)
+    {
+      perror("[-]Error in sending file name size.");
+      exit(1);
+    }
+
   // Sending file Name
-  if (send(sockfd, fileName, sizeof(argv[1]), 0) == -1)
+  if (send(sockfd, fileName, fileNameSize, 0) == -1)
     {
       perror("[-]Error in sending file Name.");
       exit(1);
   }
 
+/*
+  int n;
+  while(fileNameSize > 0) {
+    if (n = send(sockfd, fileName, sizeof(argv[1]), 0) == -1)
+    {  
+      perror("[-]Error in sending file Name.");
+      exit(1);
+    }
+    fileNameSize -= n;
+  }
+*/
 
   send_file(fp, sockfd, fileSize);
   printf("[+]File data sent successfully.\n");
