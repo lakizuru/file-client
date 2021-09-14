@@ -22,8 +22,8 @@ int main(int argc, char **argv)
   int port = 6666;
   int e;
 
-  int sockfd;
-  struct sockaddr_in server_addr;
+  int sockfd, cli_sock;
+  struct sockaddr_in server_addr, client_addr;
   FILE *fp;
   char *fileName = argv[1];
   int fileSize, fileNameSize, maxFileSize;
@@ -35,6 +35,21 @@ int main(int argc, char **argv)
     exit(1);
   }
   printf("[+]Server socket created successfully.\n");
+
+  // creating a socket for client
+  cli_sock = socket(AF_INET, SOCK_STREAM, 0);
+
+  client_addr.sin_family = AF_INET;
+  client_addr.sin_port = 5555;
+  client_addr.sin_addr.s_addr = inet_addr(ip);
+
+  e = bind(cli_sock, (struct sockaddr *)&client_addr, sizeof(client_addr));
+  if (e < 0)
+  {
+    perror("[-]Error in bind");
+    exit(1);
+  }
+  printf("[+]Binding successfull.\n");
 
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = port;
@@ -50,6 +65,23 @@ int main(int argc, char **argv)
 
   // Reading maximum file size
   read(sockfd, &maxFileSize, sizeof(maxFileSize));
+
+  // Getting fileNameSize
+  fileNameSize = strlen(argv[1]);
+
+  // Sending fileNameSize
+  if (send(sockfd, &fileNameSize, sizeof(fileNameSize), 0) == -1)
+    {
+      perror("[-]Error in sending file name size.");
+      exit(1);
+    }
+
+  // Sending file Name
+  if (send(sockfd, fileName, fileNameSize, 0) == -1)
+    {
+      perror("[-]Error in sending file Name.");
+      exit(1);
+  }
 
   fp = fopen(fileName, "r");
   if (fp == NULL)
@@ -72,30 +104,12 @@ int main(int argc, char **argv)
     exit(1);
   }
 
-  // Getting fileNameSize
-  fileNameSize = strlen(argv[1]);
-  printf("%d\n", fileNameSize);
-
   // Sending file Size
   if (send(sockfd, &fileSize, sizeof(fileSize), 0) == -1)
     {
       perror("[-]Error in sending file size.");
       exit(1);
     }
-
-  // Sending fileNameSize
-  if (send(sockfd, &fileNameSize, sizeof(fileNameSize), 0) == -1)
-    {
-      perror("[-]Error in sending file name size.");
-      exit(1);
-    }
-
-  // Sending file Name
-  if (send(sockfd, fileName, fileNameSize, 0) == -1)
-    {
-      perror("[-]Error in sending file Name.");
-      exit(1);
-  }
 
   send_file(fp, sockfd, fileSize);
   printf("[+]File data sent successfully.\n");
