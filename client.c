@@ -3,6 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 void send_file(FILE *fp, int sockfd, int fileSize)
 {
@@ -15,6 +18,32 @@ void send_file(FILE *fp, int sockfd, int fileSize)
     write(sockfd, data, sizeof(data));
     bzero(data, sizeof(data));
   }
+}
+
+void write_file(int sockfd, int fileSize)
+{
+  int n;
+  FILE *fp;
+
+  char *filename = "recv";
+
+  char buffer[4096];
+  bzero(buffer, sizeof(buffer));
+
+  fp = fopen(filename, "w");
+
+  // Reading byte array
+  while (fileSize > 0)
+  {
+    read(sockfd, buffer, 4096);
+    fwrite(buffer, 1, sizeof(buffer), fp);
+    fileSize -= 4096;
+    bzero(buffer, sizeof(buffer));
+  }
+
+  fclose(fp);
+
+  return;
 }
 
 int main(int argc, char **argv)
@@ -130,6 +159,8 @@ int main(int argc, char **argv)
     send_file(fp, sockfd, fileSize);
     printf("[+]File data sent successfully.\n");
   }
+  
+  //Pulling a file
   else if (strcmp(argv[1], "pull") == 0)
   {
 
@@ -140,6 +171,23 @@ int main(int argc, char **argv)
       perror("[-]Error in sending action as pull.");
       exit(1);
     }
+//
+      // Read file size
+      read(sockfd, &fileSize, sizeof(fileSize));
+      if (fileSize == -1)
+      {
+        printf("[-]Maximum file size of %d exceeded.\n[-]File not tranferred.\n", maxFileSize);
+        //printf("[+]Client connection from %s successfully terminated\n", cli_ip);
+        printf("[-]Closing the connection.\n");
+        close(sockfd);
+        exit(1);
+      }
+
+      write_file(sockfd, fileSize);
+      rename("recv", fileName);
+      printf("[+]Data written in the file successfully.\n");
+      //printf("[+]Client connection from %s successfully terminated\n", cli_ip);
+//    
   }
   else
   {
