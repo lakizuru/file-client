@@ -157,7 +157,7 @@ int main(int argc, char **argv)
     }
 
     send_file(fp, sockfd, fileSize);
-    printf("[+]File data sent successfully.\n");
+    printf("[+]File sent successfully.\n");
   }
   
   //Pulling a file
@@ -176,8 +176,8 @@ int main(int argc, char **argv)
       read(sockfd, &fileSize, sizeof(fileSize));
       if (fileSize == -1)
       {
-        printf("[-]Maximum file size of %d exceeded.\n[-]File not tranferred.\n", maxFileSize);
-        //printf("[+]Client connection from %s successfully terminated\n", cli_ip);
+        printf("[-]Maximum file size of %d exceeded.\n[-]File not downloaded.\n", maxFileSize);
+        printf("[+]Server connection successfully terminated\n");
         printf("[-]Closing the connection.\n");
         close(sockfd);
         exit(1);
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
       write_file(sockfd, fileSize);
       rename("recv", fileName);
       printf("[+]Data written in the file successfully.\n");
-      //printf("[+]Client connection from %s successfully terminated\n", cli_ip);
+      printf("[+]Server connection successfully terminated\n");
 //    
   }
   else
