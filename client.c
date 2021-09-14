@@ -198,7 +198,7 @@ int main(int argc, char **argv)
       perror("[-]Error in sending action as error.");
       exit(1);
     }
-    printf("[-]No such command as \'%s\'.\n", argv[1]);
+    printf("[-]No such argument as \'%s\'.\n", argv[1]);
   }
 
   printf("[+]Closing the connection.\n");
