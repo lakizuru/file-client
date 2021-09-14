@@ -9,9 +9,10 @@ void send_file(FILE *fp, int sockfd, int fileSize)
   int n;
   char data[4096];
 
-  while(!feof(fp)){
+  while (!feof(fp))
+  {
     fread(data, 1, sizeof(data), fp);
-    write(sockfd, data, sizeof(data)); 
+    write(sockfd, data, sizeof(data));
     bzero(data, sizeof(data));
   }
 }
@@ -22,11 +23,13 @@ int main(int argc, char **argv)
   int port = 6666;
   int e;
 
-  int sockfd;
-  struct sockaddr_in server_addr;
+  int sockfd, cli_sock;
+  struct sockaddr_in server_addr, client_addr;
   FILE *fp;
-  char *fileName = argv[1];
-  int fileSize, fileNameSize, maxFileSize;
+
+  char *action = argv[1];
+  char *fileName = argv[2];
+  int fileSize, fileNameSize, maxFileSize, actionID;
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0)
@@ -35,6 +38,21 @@ int main(int argc, char **argv)
     exit(1);
   }
   printf("[+]Server socket created successfully.\n");
+
+  // creating a socket for client
+  cli_sock = socket(AF_INET, SOCK_STREAM, 0);
+
+  client_addr.sin_family = AF_INET;
+  client_addr.sin_port = 5555;
+  client_addr.sin_addr.s_addr = inet_addr(ip);
+
+  e = bind(cli_sock, (struct sockaddr *)&client_addr, sizeof(client_addr));
+  if (e < 0)
+  {
+    perror("[-]Error in bind");
+    exit(1);
+  }
+  printf("[+]Binding successfull.\n");
 
   server_addr.sin_family = AF_INET;
   server_addr.sin_port = port;
@@ -51,54 +69,89 @@ int main(int argc, char **argv)
   // Reading maximum file size
   read(sockfd, &maxFileSize, sizeof(maxFileSize));
 
-  fp = fopen(fileName, "r");
-  if (fp == NULL)
-  {
-    perror("[-]Error in reading file.");
-    exit(1);
-  }
-
-  // Getting file size
-  fseek(fp, 0, SEEK_END);
-  fileSize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-
-  if (fileSize > maxFileSize){
-    printf("[-]Maximum file size of %d exceeded.\n", maxFileSize);
-    fileSize = -1;
-    send(sockfd, &fileSize, sizeof(fileSize), 0);
-    printf("[-]Closing the connection.\n");
-    close(sockfd);
-    exit(1);
-  }
-
   // Getting fileNameSize
-  fileNameSize = strlen(argv[1]);
-  printf("%d\n", fileNameSize);
+  fileNameSize = strlen(argv[2]);
 
-  // Sending file Size
-  if (send(sockfd, &fileSize, sizeof(fileSize), 0) == -1)
+  // Sending fileNameSize
+  if (send(sockfd, &fileNameSize, sizeof(fileNameSize), 0) == -1)
+  {
+    perror("[-]Error in sending file name size.");
+    exit(1);
+  }
+
+  // Sending file Name
+  if (send(sockfd, fileName, fileNameSize, 0) == -1)
+  {
+    perror("[-]Error in sending file Name.");
+    exit(1);
+  }
+
+  // Push (Uploading file)
+  if (strcmp(argv[1], "push") == 0)
+  {
+
+    // Sending action as push(1)
+    actionID = 1;
+    if (send(sockfd, &actionID, sizeof(actionID), 0) == -1)
+    {
+      perror("[-]Error in sending action as push.");
+      exit(1);
+    }
+
+    fp = fopen(fileName, "r");
+    if (fp == NULL)
+    {
+      perror("[-]Error in reading file.");
+      exit(1);
+    }
+
+    // Getting file size
+    fseek(fp, 0, SEEK_END);
+    fileSize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    if (fileSize > maxFileSize)
+    {
+      printf("[-]Maximum file size of %d exceeded.\n", maxFileSize);
+      fileSize = -1;
+      send(sockfd, &fileSize, sizeof(fileSize), 0);
+      printf("[-]Closing the connection.\n");
+      close(sockfd);
+      exit(1);
+    }
+
+    // Sending file Size
+    if (send(sockfd, &fileSize, sizeof(fileSize), 0) == -1)
     {
       perror("[-]Error in sending file size.");
       exit(1);
     }
 
-  // Sending fileNameSize
-  if (send(sockfd, &fileNameSize, sizeof(fileNameSize), 0) == -1)
+    send_file(fp, sockfd, fileSize);
+    printf("[+]File data sent successfully.\n");
+  }
+  else if (strcmp(argv[1], "pull") == 0)
+  {
+
+    // Sending action as pull(0)
+    actionID = 0;
+    if (send(sockfd, &actionID, sizeof(actionID), 0) == -1)
     {
-      perror("[-]Error in sending file name size.");
+      perror("[-]Error in sending action as pull.");
       exit(1);
     }
-
-  // Sending file Name
-  if (send(sockfd, fileName, fileNameSize, 0) == -1)
-    {
-      perror("[-]Error in sending file Name.");
-      exit(1);
   }
-
-  send_file(fp, sockfd, fileSize);
-  printf("[+]File data sent successfully.\n");
+  else
+  {
+    // Sending action as error(-1)
+    actionID = -1;
+    if (send(sockfd, &actionID, sizeof(actionID), 0) == -1)
+    {
+      perror("[-]Error in sending action as error.");
+      exit(1);
+    }
+    printf("[-]No such command as \'%s\'.\n", argv[1]);
+  }
 
   printf("[+]Closing the connection.\n");
   close(sockfd);
