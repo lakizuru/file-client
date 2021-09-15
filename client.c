@@ -164,7 +164,6 @@ int main(int argc, char **argv)
   //Pulling a file
   else if (strcmp(argv[1], "pull") == 0)
   {
-
     // Sending action as pull(0)
     actionID = 0;
     if (send(sockfd, &actionID, sizeof(actionID), 0) == -1)
