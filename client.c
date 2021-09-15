@@ -59,6 +59,7 @@ int main(int argc, char **argv)
   char *action = argv[1];
   char *fileName = argv[2];
   int fileSize, fileNameSize, maxFileSize, actionID;
+  int minFileSize = 10485760; // = 10MB
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0)
@@ -139,9 +140,9 @@ int main(int argc, char **argv)
     fileSize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    if (fileSize > maxFileSize)
+    if (fileSize > maxFileSize || fileSize < minFileSize)
     {
-      printf("[-]Maximum file size of %d exceeded.\n", maxFileSize);
+      printf("[-]File size out of range.\n");
       fileSize = -1;
       send(sockfd, &fileSize, sizeof(fileSize), 0);
       printf("[-]Closing the connection.\n");
