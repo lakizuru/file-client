@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
   client_addr.sin_family = AF_INET;
   client_addr.sin_port = 5555;
-  client_addr.sin_addr.s_addr = inet_addr(ip);
+  client_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
   e = bind(cli_sock, (struct sockaddr *)&client_addr, sizeof(client_addr));
   if (e < 0)
@@ -189,6 +189,8 @@ int main(int argc, char **argv)
       printf("[+]Server connection successfully terminated\n");
 //    
   }
+
+//Pulling a file
   else
   {
     // Sending action as error(-1)
