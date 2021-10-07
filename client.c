@@ -48,7 +48,7 @@ void write_file(int sockfd, int fileSize)
 
 int main(int argc, char **argv)
 {
-  char *ip = "127.0.0.1";
+  char *ip = argv[2];
   int port = 6666;
   int e;
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   FILE *fp;
 
   char *action = argv[1];
-  char *fileName = argv[2];
+  char *fileName = argv[3];
   int fileSize, fileNameSize, maxFileSize, actionID;
   int minFileSize = 10485760; // = 10MB
 
