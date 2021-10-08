@@ -98,6 +98,7 @@ int main(int argc, char **argv)
 
   // Reading maximum file size
   read(sockfd, &maxFileSize, sizeof(maxFileSize));
+  printf("[+]Max file size is %d bytes\n", maxFileSize);
 
   // Getting fileNameSize
   fileNameSize = strlen(argv[2]);
