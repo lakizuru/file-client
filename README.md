@@ -23,6 +23,11 @@ Please find the server program repository from [here](https://github.com/lakizur
 - File should be placed in relavent working directory. (For 'push', file should be in client program working directory. For 'pull', file should be in server program working directory.)
 
 ### Example:
-```
+```bash
 ./client push 127.0.0.1 example.mp4
+```
+
+### Building:
+```bash
+make clean client
 ```
