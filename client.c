@@ -9,14 +9,15 @@
 
 void send_file(FILE *fp, int sockfd, int fileSize)
 {
-  int n;
+  ssize_t n;
   char data[4096];
 
   while (!feof(fp))
   {
-    fread(data, 1, sizeof(data), fp);
-    write(sockfd, data, sizeof(data));
-    bzero(data, sizeof(data));
+    if (!(n = fread(data, 1, sizeof(data), fp)))
+      break;
+
+    write(sockfd, data, n);
   }
 }
 
@@ -101,7 +102,7 @@ int main(int argc, char **argv)
   printf("[+]Max file size is %d bytes\n", maxFileSize);
 
   // Getting fileNameSize
-  fileNameSize = strlen(argv[2]);
+  fileNameSize = strlen(fileName);
 
   // Sending fileNameSize
   if (send(sockfd, &fileNameSize, sizeof(fileNameSize), 0) == -1)
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
   }
 
   // Push (Uploading file)
-  if (strcmp(argv[1], "push") == 0)
+  if (strcmp(action, "push") == 0)
   {
 
     // Sending action as push(1)
@@ -163,7 +164,7 @@ int main(int argc, char **argv)
   }
   
   //Pulling a file
-  else if (strcmp(argv[1], "pull") == 0)
+  else if (strcmp(action, "pull") == 0)
   {
     // Sending action as pull(0)
     actionID = 0;
@@ -201,7 +202,7 @@ int main(int argc, char **argv)
       perror("[-]Error in sending action as error.");
       exit(1);
     }
-    printf("[-]No such argument as \'%s\'.\n", argv[1]);
+    printf("[-]No such argument as \'%s\'.\n", action);
   }
 
   printf("[+]Closing the connection.\n");
